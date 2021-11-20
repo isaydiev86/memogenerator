@@ -282,6 +282,7 @@ class DraggableMemeText extends StatefulWidget {
 }
 
 class _DraggableMemeTextState extends State<DraggableMemeText> {
+
   late double top;
   late double left;
   final double padding = 8;
