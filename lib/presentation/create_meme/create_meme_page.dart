@@ -191,7 +191,10 @@ class BottomList extends StatelessWidget {
                   return const AddNewTextMemeButton();
                 }
                 final item = items[index - 1];
-                return BottomMemeText(item: item);
+                return GestureDetector(
+                  onTap: () => bloc.selectMemeText(item.memeText.id),
+                  child: BottomMemeText(item: item),
+                );
               },
               separatorBuilder: (BuildContext context, int index) {
                 if (index == 0) {
@@ -264,15 +267,14 @@ class MemeCanvasWidget extends StatelessWidget {
         child: Stack(
           children: [
             StreamBuilder<String?>(
-              stream: bloc.observeMemePath(),
-              builder: (context, snapshot) {
-                final path = snapshot.hasData ? snapshot.data : null;
-                if (path == null) {
-                  return Container(color: Colors.white);
-                }
-                return Image.file(File(path));
-              }
-            ),
+                stream: bloc.observeMemePath(),
+                builder: (context, snapshot) {
+                  final path = snapshot.hasData ? snapshot.data : null;
+                  if (path == null) {
+                    return Container(color: Colors.white);
+                  }
+                  return Image.file(File(path));
+                }),
             StreamBuilder<List<MemeTextWithOffset>>(
               initialData: const <MemeTextWithOffset>[],
               stream: bloc.observeMemeTextWithOffsets(),
