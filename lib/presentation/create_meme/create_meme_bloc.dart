@@ -6,6 +6,7 @@ import 'package:memogenerator/data/models/meme.dart';
 import 'package:memogenerator/data/models/position.dart';
 import 'package:memogenerator/data/models/text_with_position.dart';
 import 'package:memogenerator/data/repositories/memes_repository.dart';
+import 'package:memogenerator/domain/interactors/save_meme_interactor.dart';
 import 'package:memogenerator/presentation/create_meme/models/meme_text_offset.dart';
 import 'package:memogenerator/presentation/create_meme/models/meme_text_with_offset.dart';
 import 'package:path_provider/path_provider.dart';
@@ -69,8 +70,8 @@ class CreateMemeBloc {
   void saveMeme() {
     final memeTexts = memeTextsSubject.value;
     final memeTextOffsets = memeTextOffsetsSubject.value;
-
-    final textWithPosition = memeTexts.map((memeText) {
+    print(memeTextOffsets);
+    final textWithPositions = memeTexts.map((memeText) {
       final memeTextPosition =
           memeTextOffsets.firstWhereOrNull((memeTextOffset) {
         return memeTextOffset.id == memeText.id;
@@ -83,38 +84,20 @@ class CreateMemeBloc {
           id: memeText.id, text: memeText.text, position: position);
     }).toList();
 
-    saveMemeSubscription =
-        _saveMemeInternal(textWithPosition).asStream().listen(
+    saveMemeSubscription = SaveMemeInteractor.getInstance()
+        .saveMeme(
+          id: id,
+          textWithPositions: textWithPositions,
+          imagePath: memePathSubject.value,
+        )
+        .asStream()
+        .listen(
       (saved) {
         print("Meme saved $saved");
       },
       onError: (error, stackTrace) =>
           print("Error in saveMemeSubscription: $error, $stackTrace"),
     );
-  }
-
-  Future<bool> _saveMemeInternal(
-      final List<TextWithPosition> textWithPosition) async {
-    final imagePath = memePathSubject.value;
-    if (imagePath == null) {
-      final meme = Meme(id: id, texts: textWithPosition);
-      return MemesRepository.getInstance().addToMeme(meme);
-    }
-    final docsPath = await getApplicationDocumentsDirectory();
-    final memePath = "${docsPath.absolute.path}${Platform.pathSeparator}memes";
-    await Directory(memePath).create(recursive: true);
-    
-    final imageName = imagePath.split(Platform.pathSeparator).last;
-    final newImagePath = "$memePath${Platform.pathSeparator}$imageName";
-    final tempFile = File(imagePath);
-
-    await tempFile.copy(newImagePath);
-    final meme = Meme(
-      id: id,
-      texts: textWithPosition,
-      memePath: newImagePath,
-    );
-    return MemesRepository.getInstance().addToMeme(meme);
   }
 
   void _subscribeToNewMemeTextOffset() {
@@ -151,6 +134,7 @@ class CreateMemeBloc {
   void addNewText() {
     final newText = MemeText.create();
     memeTextsSubject.add([...memeTextsSubject.value, newText]);
+    //changeMemeTextOffset(id, offset);
     selectedMemeTextSubject.add(newText);
   }
 

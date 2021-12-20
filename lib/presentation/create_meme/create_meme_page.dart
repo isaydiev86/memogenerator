@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:memogenerator/presentation/create_meme/create_meme_bloc.dart';
 import 'package:memogenerator/presentation/create_meme/models/meme_text_with_offset.dart';
 import 'package:memogenerator/resources/app_colors.dart';
@@ -192,6 +193,7 @@ class BottomList extends StatelessWidget {
                 }
                 final item = items[index - 1];
                 return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: () => bloc.selectMemeText(item.memeText.id),
                   child: BottomMemeText(item: item),
                 );
@@ -235,6 +237,7 @@ class BottomMemeText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 48,
+      width: double.infinity,
       alignment: Alignment.centerLeft,
       color: item.selected ? AppColors.darkGrey16 : null,
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -333,6 +336,13 @@ class _DraggableMemeTextState extends State<DraggableMemeText> {
         widget.parentConstraints.maxHeight / 2;
     left = widget.memeTextWithOffset.offset?.dx ??
         widget.parentConstraints.maxWidth / 3;
+    if (widget.memeTextWithOffset.offset == null) {
+      WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+        final bloc = Provider.of<CreateMemeBloc>(context, listen: false);
+        bloc.changeMemeTextOffset(
+            widget.memeTextWithOffset.id, Offset(left, top));
+      });
+    }
   }
 
   @override
