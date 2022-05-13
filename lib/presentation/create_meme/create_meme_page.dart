@@ -57,26 +57,8 @@ class _CreateMemePageState extends State<CreateMemePage> {
             title: Text("Создаем мем"),
             bottom: EditTextBar(),
             actions: [
-              GestureDetector(
-                onTap: () => bloc.shareMeme(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Icon(
-                    Icons.share,
-                    color: AppColors.darkGrey,
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () => bloc.saveMeme(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Icon(
-                    Icons.save,
-                    color: AppColors.darkGrey,
-                  ),
-                ),
-              ),
+              AnimatedIconButton(onTap: () => bloc.shareMeme(), icon: Icons.share),
+              AnimatedIconButton(onTap: () => bloc.saveMeme(), icon: Icons.save),
             ],
           ),
           backgroundColor: Colors.white,
@@ -115,6 +97,45 @@ class _CreateMemePageState extends State<CreateMemePage> {
           ],
         );
       },
+    );
+  }
+}
+
+class AnimatedIconButton extends StatefulWidget {
+  final VoidCallback onTap;
+  final IconData icon;
+
+  const AnimatedIconButton({
+    Key? key,
+    required this.onTap,
+    required this.icon,
+  }) : super(key: key);
+
+  @override
+  State<AnimatedIconButton> createState() => _AnimatedIconButtonState();
+}
+
+class _AnimatedIconButtonState extends State<AnimatedIconButton> {
+  double scale = 1.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final bloc = Provider.of<CreateMemeBloc>(context, listen: false);
+    return GestureDetector(
+      onTap: () {
+        setState(() => scale = 1.5);
+        widget.onTap();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: AnimatedScale(
+          scale: scale,
+          curve: Curves.bounceInOut,
+          duration: Duration(milliseconds: 200),
+          child: Icon(widget.icon, color: AppColors.darkGrey, size: 24),
+          onEnd: () => setState(() => scale = 1.0),
+        ),
+      ),
     );
   }
 }
@@ -315,10 +336,8 @@ class BottomMemeText extends StatelessWidget {
               showModalBottomSheet(
                 context: context,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(24)
-                    )
-                ),
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(24))),
                 builder: (context) {
                   return Provider.value(
                     value: bloc,
@@ -353,7 +372,6 @@ class BottomMemeTextAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return GestureDetector(
       onTap: onTap,
       child: Padding(
